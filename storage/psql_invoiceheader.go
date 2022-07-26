@@ -3,6 +3,8 @@ package storage
 import (
 	"database/sql"
 	"fmt"
+
+	"github.com/jullentuss/go-db/pkg/invoiceheader"
 )
 
 // buenas practicas en el uso de base de datos
@@ -14,6 +16,7 @@ const (
 		update_at TIMESTAMP,
 		CONSTRAINT Invoice_headers_id_pk PRIMARY KEY (id)
 	)`
+	psqlCreateInvoiceHeader = `INSERT INTO invoice_headers(client) VALUES($1) RETURNING id, created_at`
 )
 
 // PsqlInvoiceHeader usad for work with posgres - product
@@ -42,4 +45,15 @@ func (p *PsqlInvoiceHeader) Migrate() error {
 
 	fmt.Println("Migración de InvoiceHeader ejecutada correctamente")
 	return nil
+}
+
+func (p *PsqlInvoiceHeader) CreateTx(tx *sql.Tx, m *invoiceheader.Model) error {
+	stmt, err := tx.Prepare(psqlCreateInvoiceHeader)
+	if err != nil {
+		return err
+	}
+
+	defer stmt.Close()
+
+	return stmt.QueryRow(m.Client).Scan(&m.ID, &m.CreatedAt)
 }

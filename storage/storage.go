@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"sync"
+	"time"
 
 	_ "github.com/lib/pq"
 )
@@ -37,4 +38,21 @@ func NewPostgresDB() {
 // retorna unica instancia de db
 func Pool() *sql.DB {
 	return db
+}
+
+// helper para manipular los datos nulos en base de datos
+func stringToNull(s string) sql.NullString {
+	null := sql.NullString{String: s}
+	if null.String != "" {
+		null.Valid = true
+	}
+	return null
+}
+
+func timeToNull(t time.Time) sql.NullTime {
+	null := sql.NullTime{Time: t}
+	if !null.Time.IsZero() {
+		null.Valid = true
+	}
+	return null
 }

@@ -12,7 +12,7 @@ if err := serviceProduct.Migrate(); err != nil {
 # InvoiceHeaders Migrations
 ```go
 storageInvoiceHeader := storage.NewPsqlInvoiceHeader(storage.Pool())
-serviceInvoiceHeader := product.NewService(storageInvoiceHeader)
+serviceInvoiceHeader := invoiceheader.NewService(storageInvoiceHeader)
 
 if err := serviceInvoiceHeader.Migrate(); err != nil {
 	log.Fatalf("invoiceHeader.Migrate: %v", err)
@@ -22,9 +22,92 @@ if err := serviceInvoiceHeader.Migrate(); err != nil {
 # InvoiceItems Migrations
 ```go
 storageInvoiceItem := storage.NewPsqlInvoiceItem(storage.Pool())
-serviceInvoiceItem := product.NewService(storageInvoiceItem)
+serviceInvoiceItem := invoiceitem.NewService(storageInvoiceItem)
 
 if err := serviceInvoiceItem.Migrate(); err != nil {
 	log.Fatalf("invoiceItem.Migrate: %v", err)
 }
+```
+
+# insertar datos de producto 
+```go
+m := &product.Model{
+		Name:         "Curso de DB con GO",
+		Price:        70,
+		Observations: "Curso disponible",
+	}
+
+	if err := serviceProduct.Create(m); err != nil {
+		log.Fatalf("product.Create: %v", err)
+	}
+
+	fmt.Printf("%+v\n", m)
+```
+
+# consultar 1 dato
+```go
+	storage.NewPostgresDB()
+
+	storageProduct := storage.NewPsqlProduct(storage.Pool())
+	serviceProduct := product.NewService(storageProduct)
+
+	m, err := serviceProduct.GetByID(3)
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		fmt.Println("No hay un producto con el id")
+	case err != nil:
+		log.Fatalf("product.GetByID: %v\n", err)
+	default:
+		fmt.Println(m)
+	}
+```
+
+# consultar varios registros
+```go
+storage.NewPostgresDB()
+
+	storageProduct := storage.NewPsqlProduct(storage.Pool())
+	serviceProduct := product.NewService(storageProduct)
+
+	ms, err := serviceProduct.GetAll()
+	if err != nil {
+		log.Fatalf("product.GetAll: %v", err)
+	}
+
+	fmt.Println(ms)
+```
+
+
+# actualizar un dato
+```go
+storage.NewPostgresDB()
+
+	storageProduct := storage.NewPsqlProduct(storage.Pool())
+	serviceProduct := product.NewService(storageProduct)
+
+	m := &product.Model{
+		ID:           3,
+		Name:         "Curso Python",
+		Observations: "Curso de python desde 0",
+		Price:        50,
+	}
+
+	err := serviceProduct.Update(m)
+	if err != nil {
+		log.Fatalf("product.Update: %v", err)
+	}
+```
+
+
+# eliminar un producto
+```go
+	storage.NewPostgresDB()
+
+	storageProduct := storage.NewPsqlProduct(storage.Pool())
+	serviceProduct := product.NewService(storageProduct)
+
+	err := serviceProduct.Delete(3)
+	if err != nil {
+		log.Fatalf("product.Delete: %v", err)
+	}
 ```
