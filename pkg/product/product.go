@@ -1,7 +1,6 @@
 package product
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
@@ -25,11 +24,11 @@ type Models []*Model
 
 type Storage interface {
 	Migrate() error
-	Create(*Model) error
-	Update(*Model) error
-	GetAll() (Models, error)
-	GetByID(uint) (*Model, error)
-	Delete(uint) error
+	// 	Create(*Model) error
+	// 	Update(*Model) error
+	// 	GetAll() (Models, error)
+	// 	GetByID(uint) (*Model, error)
+	// 	Delete(uint) error
 }
 
 type Service struct {
@@ -45,39 +44,39 @@ func (s *Service) Migrate() error {
 	return s.storage.Migrate()
 }
 
-func (s *Service) Create(m *Model) error {
-	m.CreatedAt = time.Now()
-	return s.storage.Create(m)
-}
+// func (s *Service) Create(m *Model) error {
+// 	m.CreatedAt = time.Now()
+// 	return s.storage.Create(m)
+// }
 
-func (m *Model) String() string {
-	return fmt.Sprintf("%02d | %-20s | %-20s | %5d | %10s | %10s\n",
-		m.ID,
-		m.Name,
-		m.Observations,
-		m.Price,
-		m.CreatedAt.Format("2006-01-02"),
-		m.UpdatedAt.Format("2006-01-02"),
-	)
-}
+// func (m *Model) String() string {
+// 	return fmt.Sprintf("%02d | %-20s | %-20s | %5d | %10s | %10s\n",
+// 		m.ID,
+// 		m.Name,
+// 		m.Observations,
+// 		m.Price,
+// 		m.CreatedAt.Format("2006-01-02"),
+// 		m.UpdatedAt.Format("2006-01-02"),
+// 	)
+// }
 
-func (s *Service) GetAll() (Models, error) {
-	return s.storage.GetAll()
-}
+// func (s *Service) GetAll() (Models, error) {
+// 	return s.storage.GetAll()
+// }
 
-func (s *Service) GetByID(id uint) (*Model, error) {
-	return s.storage.GetByID(id)
-}
+// func (s *Service) GetByID(id uint) (*Model, error) {
+// 	return s.storage.GetByID(id)
+// }
 
-func (s *Service) Update(m *Model) error {
-	if m.ID == 0 {
-		return ErrIDNotFound
-	}
-	m.UpdatedAt = time.Now()
+// func (s *Service) Update(m *Model) error {
+// 	if m.ID == 0 {
+// 		return ErrIDNotFound
+// 	}
+// 	m.UpdatedAt = time.Now()
 
-	return s.storage.Update(m)
-}
+// 	return s.storage.Update(m)
+// }
 
-func (s *Service) Delete(id uint) error {
-	return s.storage.Delete(id)
-}
+// func (s *Service) Delete(id uint) error {
+// 	return s.storage.Delete(id)
+// }

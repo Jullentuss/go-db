@@ -3,38 +3,31 @@ package main
 import (
 	"log"
 
-	"github.com/jullentuss/go-db/pkg/invoice"
-	"github.com/jullentuss/go-db/pkg/invoiceheader"
-	"github.com/jullentuss/go-db/pkg/invoiceitem"
+	"github.com/jullentuss/go-db/pkg/product"
 	"github.com/jullentuss/go-db/storage"
 )
 
 func main() {
-	storage.NewPostgresDB()
+	storage.NewMySQLDB()
 
-	storageHeader := storage.NewPsqlInvoiceHeader(storage.Pool())
-	storageItems := storage.NewPsqlInvoiceItem(storage.Pool())
+	storageProduct := storage.NewMySQLProduct(storage.Pool())
+	serviceProduct := product.NewService(storageProduct)
 
-	storageInvoice := storage.NewPSqlInvoice(
-		storage.Pool(),
-		storageHeader,
-		storageItems,
-	)
-
-	m := &invoice.Model{
-		Header: &invoiceheader.Model{
-			Client: "Steven Clavijo",
-		},
-		Items: invoiceitem.Models{
-			&invoiceitem.Model{ProductID: 1},
-			&invoiceitem.Model{ProductID: 2},
-		},
+	if err := serviceProduct.Migrate(); err != nil {
+		log.Fatalf("producto.Migrate: %v", err)
 	}
 
-	serviceInvoice := invoice.NewService(storageInvoice)
-	if err := serviceInvoice.Create(m); err != nil {
-		log.Fatalf("invoice.Create: %v", err)
+	storageHeader := storage.NewMySQLInvoiceHeader(storage.Pool())
+	serviceHeader := product.NewService(storageHeader)
+
+	if err := serviceHeader.Migrate(); err != nil {
+		log.Fatalf("header.Migrate: %v", err)
 	}
 
-	//fmt.Println(m)
+	storageItem := storage.NewMySQLInvoiceItem(storage.Pool())
+	serviceItem := product.NewService(storageItem)
+
+	if err := serviceItem.Migrate(); err != nil {
+		log.Fatalf("item.Migrate: %v", err)
+	}
 }
