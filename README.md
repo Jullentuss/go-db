@@ -141,3 +141,64 @@ storage.NewPostgresDB()
 		log.Fatalf("invoice.Create: %v", err)
 	}
 	```
+
+
+---
+
+# MySQL Migrate
+```go
+	storageProduct := storage.NewMySQLProduct(storage.Pool())
+	serviceProduct := product.NewService(storageProduct)
+
+	if err := serviceProduct.Migrate(); err != nil {
+		log.Fatalf("producto.Migrate: %v", err)
+	}
+
+	storageHeader := storage.NewMySQLInvoiceHeader(storage.Pool())
+	serviceHeader := product.NewService(storageHeader)
+
+	if err := serviceHeader.Migrate(); err != nil {
+		log.Fatalf("header.Migrate: %v", err)
+	}
+
+	storageItem := storage.NewMySQLInvoiceItem(storage.Pool())
+	serviceItem := product.NewService(storageItem)
+
+	if err := serviceItem.Migrate(); err != nil {
+		log.Fatalf("item.Migrate: %v", err)
+	}
+```
+
+
+# MySQL Create 
+
+```go
+	storage.NewMySQLDB()
+	storageProduct := storage.NewMySQLProduct(storage.Pool())
+	serviceProduct := product.NewService(storageProduct)
+
+	m := &product.Model{
+		Name:  "Curso de GO desde 0",
+		Price: 70,
+	}
+
+	if err := serviceProduct.Create(m); err != nil {
+		log.Fatalf("product.Create: %v", err)
+	}
+
+	fmt.Printf("%+v\n", m)
+```
+
+# MySQL get by id
+```go
+	storage.NewMySQLDB()
+	storageProduct := storage.NewMySQLProduct(storage.Pool())
+	serviceProduct := product.NewService(storageProduct)
+
+	ms, err := serviceProduct.GetAll()
+	if err != nil {
+		log.Fatalf("product.GetAll: %v", err)
+	}
+
+	fmt.Println(ms)
+```

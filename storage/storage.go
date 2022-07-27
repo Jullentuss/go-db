@@ -39,7 +39,7 @@ func NewPostgresDB() {
 func NewMySQLDB() {
 	once.Do(func() {
 		var err error
-		db, err = sql.Open("mysql", "root:password@tcp(localhost:3306)/dbgo")
+		db, err = sql.Open("mysql", "root:password@tcp(localhost:3306)/dbgo?parseTime=true")
 		if err != nil {
 			// detiene la ejecucion de la aplicacion
 			log.Fatalf("can't open db: %v", err)

@@ -3,6 +3,8 @@ package storage
 import (
 	"database/sql"
 	"fmt"
+
+	"github.com/jullentuss/go-db/pkg/product"
 )
 
 // buenas practicas en el uso de base de datos
@@ -15,6 +17,13 @@ const (
 		created_at TIMESTAMP NOT NULL DEFAULT now(),
 		updated_at TIMESTAMP
 	)`
+	mySQLCreateProduct = `INSERT INTO 
+		products(name, observations, price, created_at) 
+		VALUES(?, ?, ?, ?)`
+	mySQLGetAllProduct     = `SELECT id, name, observations, price, created_at, updated_at FROM products`
+	mySQLGetAllProductByID = `SELECT id, name, observations, price, created_at, updated_at FROM products WHERE id = ?`
+	mySQLUpdateProduct     = `UPDATE products SET name = ?, observations = ?, price = ?, updated_at = ? WHERE id = ?`
+	mySQLDeleteroduct      = `DELETE FROM products WHERE id = ?`
 )
 
 // MySQLProduct usad for work with posgres - product
@@ -45,121 +54,129 @@ func (p *MySQLProduct) Migrate() error {
 	return nil
 }
 
-// func (p *MySQLProduct) Create(m *product.Model) error {
-// 	stmt, err := p.db.Prepare(mySQLMigrateProduct)
-// 	if err != nil {
-// 		return err
-// 	}
+func (p *MySQLProduct) Create(m *product.Model) error {
+	stmt, err := p.db.Prepare(mySQLCreateProduct)
+	if err != nil {
+		return err
+	}
 
-// 	defer stmt.Close()
+	defer stmt.Close()
 
-// 	err = stmt.QueryRow(
-// 		m.Name,
-// 		stringToNull(m.Observations),
-// 		m.Price,
-// 		m.CreatedAt,
-// 	).Scan(&m.ID)
+	result, err := stmt.Exec(
+		m.Name,
+		stringToNull(m.Observations),
+		m.Price,
+		m.CreatedAt,
+	)
 
-// 	if err != nil {
-// 		return err
-// 	}
+	if err != nil {
+		return err
+	}
 
-// 	fmt.Println("Se creo el producto correctamente")
-// 	return nil
-// }
+	id, err := result.LastInsertId()
 
-// func (p *MySQLProduct) GetAll() (product.Models, error) {
-// 	stmt, err := p.db.Prepare(psqlGetAllProduct)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	if err != nil {
+		return err
+	}
 
-// 	defer stmt.Close()
+	m.ID = uint(id)
 
-// 	rows, err := stmt.Query()
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	defer stmt.Close()
+	fmt.Printf("Se creo el producto correctamente con id: %d\n", m.ID)
+	return nil
+}
 
-// 	ms := make(product.Models, 0)
+func (p *MySQLProduct) GetAll() (product.Models, error) {
+	stmt, err := p.db.Prepare(mySQLGetAllProduct)
+	if err != nil {
+		return nil, err
+	}
 
-// 	for rows.Next() {
-// 		m, err := scanRowProduct(rows)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		ms = append(ms, m)
-// 	}
+	defer stmt.Close()
 
-// 	if err := rows.Err(); err != nil {
-// 		return nil, err
-// 	}
+	rows, err := stmt.Query()
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
 
-// 	return ms, nil
-// }
+	ms := make(product.Models, 0)
 
-// func (p *MySQLProduct) Delete(id uint) error {
-// 	stmt, err := p.db.Prepare(psqlDeleteroduct)
-// 	if err != nil {
-// 		return err
-// 	}
+	for rows.Next() {
+		m, err := scanRowProduct(rows)
+		if err != nil {
+			return nil, err
+		}
+		ms = append(ms, m)
+	}
 
-// 	defer stmt.Close()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 
-// 	_, err = stmt.Exec(id)
-// 	if err != nil {
-// 		return err
-// 	}
+	return ms, nil
+}
 
-// 	fmt.Println("Se elimino el producto correctamente")
-// 	return nil
-// }
+func (p *MySQLProduct) Delete(id uint) error {
+	stmt, err := p.db.Prepare(mySQLDeleteroduct)
+	if err != nil {
+		return err
+	}
 
-// func (p *MySQLProduct) GetByID(id uint) (*product.Model, error) {
-// 	stmt, err := p.db.Prepare(psqlGetAllProductByID)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	defer stmt.Close()
 
-// 	defer stmt.Close()
+	_, err = stmt.Exec(id)
+	if err != nil {
+		return err
+	}
 
-// 	return scanRowProduct(stmt.QueryRow(id))
-// }
+	fmt.Println("Se elimino el producto correctamente")
+	return nil
+}
 
-// func (p *MySQLProduct) Update(m *product.Model) error {
-// 	stmt, err := p.db.Prepare(psqlUpdateProduct)
-// 	if err != nil {
-// 		return err
-// 	}
+func (p *MySQLProduct) GetByID(id uint) (*product.Model, error) {
+	stmt, err := p.db.Prepare(mySQLGetAllProductByID)
+	if err != nil {
+		return nil, err
+	}
 
-// 	defer stmt.Close()
+	defer stmt.Close()
 
-// 	res, err := stmt.Exec(
-// 		m.Name,
-// 		stringToNull(m.Observations),
-// 		m.Price,
-// 		timeToNull(m.UpdatedAt),
-// 		m.ID,
-// 	)
+	return scanRowProduct(stmt.QueryRow(id))
+}
 
-// 	if err != nil {
-// 		return err
-// 	}
+func (p *MySQLProduct) Update(m *product.Model) error {
+	stmt, err := p.db.Prepare(mySQLUpdateProduct)
+	if err != nil {
+		return err
+	}
 
-// 	rowsAffected, err := res.RowsAffected()
-// 	if err != nil {
-// 		return err
-// 	}
+	defer stmt.Close()
 
-// 	// alternativa para retornar error
-// 	if rowsAffected == 0 {
-// 		return fmt.Errorf("no existe el producto con id: %d", m.ID)
-// 	}
+	res, err := stmt.Exec(
+		m.Name,
+		stringToNull(m.Observations),
+		m.Price,
+		timeToNull(m.UpdatedAt),
+		m.ID,
+	)
 
-// 	fmt.Println("Se actualizo el producto correctamente")
-// 	return nil
-// }
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	// alternativa para retornar error
+	if rowsAffected == 0 {
+		return fmt.Errorf("no existe el producto con id: %d", m.ID)
+	}
+
+	fmt.Println("Se actualizo el producto correctamente")
+	return nil
+}
 
 // funcion helper
 // func scanRowProduct(s scanner) (*product.Model, error) {
