@@ -28,8 +28,8 @@ const (
 	psqlDeleteroduct      = `DELETE FROM products WHERE id = $1`
 )
 
-// PsqlProduct usad for work with posgres - product
-type PsqlProduct struct {
+// psqlProduct usad for work with posgres - product
+type psqlProduct struct {
 	db *sql.DB
 }
 
@@ -37,13 +37,13 @@ type scanner interface {
 	Scan(dest ...any) error
 }
 
-// constructor return a new pointer of PsqlProduct
-func NewPsqlProduct(db *sql.DB) *PsqlProduct {
-	return &PsqlProduct{db}
+// constructor return a new pointer of psqlProduct
+func newPsqlProduct(db *sql.DB) *psqlProduct {
+	return &psqlProduct{db}
 }
 
 // Migrate implemen the interface product.Storage
-func (p *PsqlProduct) Migrate() error {
+func (p *psqlProduct) Migrate() error {
 	stmt, err := p.db.Prepare(psqlMigrateProduct)
 	if err != nil {
 		return err
@@ -60,7 +60,7 @@ func (p *PsqlProduct) Migrate() error {
 	return nil
 }
 
-func (p *PsqlProduct) Create(m *product.Model) error {
+func (p *psqlProduct) Create(m *product.Model) error {
 	stmt, err := p.db.Prepare(psqlCreateProduct)
 	if err != nil {
 		return err
@@ -83,7 +83,7 @@ func (p *PsqlProduct) Create(m *product.Model) error {
 	return nil
 }
 
-func (p *PsqlProduct) GetAll() (product.Models, error) {
+func (p *psqlProduct) GetAll() (product.Models, error) {
 	stmt, err := p.db.Prepare(psqlGetAllProduct)
 	if err != nil {
 		return nil, err
@@ -114,7 +114,7 @@ func (p *PsqlProduct) GetAll() (product.Models, error) {
 	return ms, nil
 }
 
-func (p *PsqlProduct) Delete(id uint) error {
+func (p *psqlProduct) Delete(id uint) error {
 	stmt, err := p.db.Prepare(psqlDeleteroduct)
 	if err != nil {
 		return err
@@ -131,7 +131,7 @@ func (p *PsqlProduct) Delete(id uint) error {
 	return nil
 }
 
-func (p *PsqlProduct) GetByID(id uint) (*product.Model, error) {
+func (p *psqlProduct) GetByID(id uint) (*product.Model, error) {
 	stmt, err := p.db.Prepare(psqlGetAllProductByID)
 	if err != nil {
 		return nil, err
@@ -142,7 +142,7 @@ func (p *PsqlProduct) GetByID(id uint) (*product.Model, error) {
 	return scanRowProduct(stmt.QueryRow(id))
 }
 
-func (p *PsqlProduct) Update(m *product.Model) error {
+func (p *psqlProduct) Update(m *product.Model) error {
 	stmt, err := p.db.Prepare(psqlUpdateProduct)
 	if err != nil {
 		return err

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jullentuss/go-db/pkg/product"
 	_ "github.com/lib/pq"
 )
 
@@ -23,17 +24,18 @@ const (
 
 type Driver string
 
+// crea conexion con la base de datos
 func New(d Driver) {
 	switch d {
 	case MySQL:
-		NewMySQLDB()
+		newMySQLDB()
 	case Postgres:
-		NewPostgresDB()
+		newPostgresDB()
 	}
 }
 
 // solo se ejecuta una vez, singleton
-func NewPostgresDB() {
+func newPostgresDB() {
 	once.Do(func() {
 		connStr := "postgres://skoll:password@localhost/dbgo?sslmode=disable"
 		var err error
@@ -52,7 +54,7 @@ func NewPostgresDB() {
 	})
 }
 
-func NewMySQLDB() {
+func newMySQLDB() {
 	once.Do(func() {
 		var err error
 		db, err = sql.Open("mysql", "root:password@tcp(localhost:3306)/dbgo?parseTime=true")
@@ -90,4 +92,16 @@ func timeToNull(t time.Time) sql.NullTime {
 		null.Valid = true
 	}
 	return null
+}
+
+//DAOproduct
+func DAOProduct(driver Driver) (product.Storage, error) {
+	switch driver {
+	case Postgres:
+		return newPsqlProduct(db), nil
+	case MySQL:
+		return newMySQLProduct(db), nil
+	default:
+		return nil, fmt.Errorf("Driver not implemented")
+	}
 }
