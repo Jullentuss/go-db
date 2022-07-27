@@ -16,6 +16,22 @@ var (
 	once sync.Once
 )
 
+const (
+	MySQL    Driver = "MYSQL"
+	Postgres Driver = "POSTGRES"
+)
+
+type Driver string
+
+func New(d Driver) {
+	switch d {
+	case MySQL:
+		NewMySQLDB()
+	case Postgres:
+		NewPostgresDB()
+	}
+}
+
 // solo se ejecuta una vez, singleton
 func NewPostgresDB() {
 	once.Do(func() {

@@ -15,6 +15,7 @@ const (
 		create_at TIMESTAMP NOT NULL DEFAULT now(),
 		update_at TIMESTAMP
 	)`
+	mySQLCreateInvoiceHeader = `INSERT INTO invoice_headers(client) VALUES(?)`
 )
 
 // MySQLInvoiceHeader usad for work with posgres - product
@@ -46,12 +47,25 @@ func (p *MySQLInvoiceHeader) Migrate() error {
 }
 
 func (p *MySQLInvoiceHeader) CreateTx(tx *sql.Tx, m *invoiceheader.Model) error {
-	stmt, err := tx.Prepare(mySQLMigrateInvoiceHeader)
+	stmt, err := tx.Prepare(mySQLCreateInvoiceHeader)
 	if err != nil {
 		return err
 	}
 
 	defer stmt.Close()
 
-	return stmt.QueryRow(m.Client).Scan(&m.ID, &m.CreatedAt)
+	result, err := stmt.Exec(m.Client)
+
+	if err != nil {
+		return err
+	}
+
+	id, err := result.LastInsertId()
+
+	if err != nil {
+		return err
+	}
+
+	m.ID = uint(id)
+	return nil
 }
